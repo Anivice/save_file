@@ -22,8 +22,8 @@
 #include <regex>
 
 std::mutex debug::log_mutex;
-std::atomic_int debug::filter_level = 0;
-int debug::log_level = 1;
+std::atomic_uint debug::filter_level = 0;
+unsigned int debug::log_level = 1;
 bool debug::endl_found_in_last_log = true;
 std::string debug::strip_func_name(const std::string & name)
 {
@@ -33,3 +33,24 @@ std::string debug::strip_func_name(const std::string & name)
     }
     return name;
 }
+
+class filter_level_init_instance_t
+{
+public:
+    filter_level_init_instance_t()
+    {
+        if (const auto log_level_env = std::getenv("LOG_LEVEL"); log_level_env != nullptr)
+        {
+            try {
+                debug::filter_level = std::stoi(log_level_env, nullptr, 10);
+            } catch (...) {
+                debug::filter_level = 0;
+            }
+
+            if (debug::filter_level > 3)
+            {
+                debug::filter_level = 3;
+            }
+        }
+    }
+} filter_level_init_instance;

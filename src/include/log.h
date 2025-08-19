@@ -154,8 +154,8 @@ namespace debug {
     constexpr bool is_pair_v = is_pair<T>::value;
 
     extern std::mutex log_mutex;
-    extern int log_level;
-    extern std::atomic_int filter_level;
+    extern unsigned int log_level;
+    extern std::atomic_uint filter_level;
     extern bool endl_found_in_last_log;
 
     template <typename ParamType>
@@ -394,7 +394,14 @@ namespace debug {
                 case 3: prefix =  color::color(5,0,0) + "[ERROR]"; break;
                 default: prefix = color::color(5,5,5) + "[INFO]"; break;
             }
-            _log(color::color(0, 2, 2), std::format("{:%d-%m-%Y %H:%M:%OS}", now), " ",
+
+            // now, check if the log level is printable or masked
+            if (log_level < filter_level)
+            {
+                return;
+            }
+
+            _log(color::color(0, 2, 2), std::format("{:%d-%m-%Y %H:%M:%S}", now), " ",
                 user_prefix_addon,
                 prefix, ": ", color::no_color());
         }
